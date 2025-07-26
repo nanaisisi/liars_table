@@ -1,91 +1,56 @@
-use rand::rngs::OsRng;
-use rand::RngCore;
-use serde::{Deserialize, Serialize};
+use rand::thread_rng;
+use rand::Rng;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RouletteConfig {
-    pub chambers: u8,
-    pub loaded_bullets: u8,
-}
-
-impl RouletteConfig {
-    pub fn new(loaded_bullets: u8) -> Self {
-        Self {
-            chambers: 6,
-            loaded_bullets,
-        }
-    }
-    
-    pub fn probability(&self) -> f64 {
-        self.loaded_bullets as f64 / self.chambers as f64
-    }
-}
-
-impl Default for RouletteConfig {
-    fn default() -> Self {
-        Self::new(1)
-    }
-}
-
+/// ロシアンルーレットの結果
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum RouletteOutcome {
+pub enum RouletteResult {
+    /// セーフ - 実弾に当たらなかった
     Safe,
+    /// アウト - 実弾に当たった
     Out,
 }
 
-#[derive(Debug, Clone)]
-pub struct RouletteResult {
-    pub outcome: RouletteOutcome,
-    pub chamber_hit: u8,
-    pub loaded_chambers: Vec<u8>,
+/// ロシアンルーレットを実行する
+/// 
+/// # 引数
+/// 
+/// * `bullet_capacity` - 装弾数（シリンダー容量）
+/// 
+/// # 戻り値
+/// 
+/// ロシアンルーレットの結果（Safe または Out）
+/// 
+/// # 実装詳細
+/// 
+/// - 実弾数は常に1発固定
+/// - 確率は 1/bullet_capacity
+/// - 標準設定では 1/6 = 約16.7%の確率でOut
+pub fn execute_roulette(bullet_capacity: u8) -> RouletteResult {
+    let mut rng = thread_rng();
+    
+    // 1 から bullet_capacity までの数値をランダムに選択
+    // 1が実弾の位置とする（任意の1つの位置でも同じ確率）
+    let chamber = rng.gen_range(1..=bullet_capacity);
+    
+    if chamber == 1 {
+        RouletteResult::Out
+    } else {
+        RouletteResult::Safe
+    }
 }
 
-pub struct RouletteEngine {
-    config: RouletteConfig,
+/// ロシアンルーレットの確率を計算（0.0 - 1.0）
+pub fn calculate_probability(bullet_capacity: u8) -> f64 {
+    if bullet_capacity == 0 {
+        0.0
+    } else {
+        1.0 / bullet_capacity as f64
+    }
 }
 
-impl RouletteEngine {
-    pub fn new(config: RouletteConfig) -> Self {
-        Self { config }
-    }
-    
-    pub fn spin(&self) -> RouletteResult {
-        // Generate cryptographically secure random numbers
-        let mut rng = OsRng;
-        
-        // Determine which chambers are loaded
-        let mut loaded_chambers = Vec::new();
-        let mut chambers: Vec<u8> = (1..=self.config.chambers).collect();
-        
-        // Randomly select chambers to load
-        for _ in 0..self.config.loaded_bullets {
-            if chambers.is_empty() {
-                break;
-            }
-            
-            let index = (rng.next_u32() as usize) % chambers.len();
-            loaded_chambers.push(chambers.remove(index));
-        }
-        
-        // Spin the cylinder - select a random chamber
-        let chamber_hit = ((rng.next_u32() as u8) % self.config.chambers) + 1;
-        
-        let outcome = if loaded_chambers.contains(&chamber_hit) {
-            RouletteOutcome::Out
-        } else {
-            RouletteOutcome::Safe
-        };
-        
-        RouletteResult {
-            outcome,
-            chamber_hit,
-            loaded_chambers,
-        }
-    }
-    
-    pub fn config(&self) -> &RouletteConfig {
-        &self.config
-    }
+/// ロシアンルーレットの確率をパーセンテージで計算
+pub fn calculate_probability_percentage(bullet_capacity: u8) -> f64 {
+    (calculate_probability(bullet_capacity) * 100.0).round()
 }
 
 #[cfg(test)]
@@ -93,100 +58,46 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_roulette_config() {
-        let config = RouletteConfig::new(2);
-        assert_eq!(config.chambers, 6);
-        assert_eq!(config.loaded_bullets, 2);
-        assert_eq!(config.probability(), 2.0 / 6.0);
-    }
-    
-    #[test]
-    fn test_default_config() {
-        let config = RouletteConfig::default();
-        assert_eq!(config.chambers, 6);
-        assert_eq!(config.loaded_bullets, 1);
-    }
-    
-    #[test]
-    fn test_roulette_engine() {
-        let config = RouletteConfig::new(1);
-        let engine = RouletteEngine::new(config);
-        
-        // Test multiple spins to ensure randomness
+    fn test_execute_roulette() {
+        // 複数回実行して両方の結果が出ることを確認
         let mut safe_count = 0;
         let mut out_count = 0;
-        let total_spins = 1000;
         
-        for _ in 0..total_spins {
-            let result = engine.spin();
-            
-            // Verify chamber_hit is in valid range
-            assert!(result.chamber_hit >= 1 && result.chamber_hit <= 6);
-            
-            // Verify loaded_chambers count
-            assert_eq!(result.loaded_chambers.len(), 1);
-            
-            // Count outcomes
-            match result.outcome {
-                RouletteOutcome::Safe => safe_count += 1,
-                RouletteOutcome::Out => out_count += 1,
-            }
-            
-            // Verify outcome consistency
-            let is_loaded = result.loaded_chambers.contains(&result.chamber_hit);
-            match result.outcome {
-                RouletteOutcome::Out => assert!(is_loaded),
-                RouletteOutcome::Safe => assert!(!is_loaded),
+        for _ in 0..1000 {
+            match execute_roulette(6) {
+                RouletteResult::Safe => safe_count += 1,
+                RouletteResult::Out => out_count += 1,
             }
         }
         
-        // Check that we get both outcomes (very high probability)
+        // 両方の結果が出ることを確認
         assert!(safe_count > 0);
         assert!(out_count > 0);
-        assert_eq!(safe_count + out_count, total_spins);
         
-        // Check approximate distribution (with large tolerance for randomness)
-        let expected_out_ratio = 1.0 / 6.0;
-        let actual_out_ratio = out_count as f64 / total_spins as f64;
-        let tolerance = 0.05; // 5% tolerance
-        
-        assert!(
-            (actual_out_ratio - expected_out_ratio).abs() < tolerance,
-            "Expected ~{:.2}, got {:.2}",
-            expected_out_ratio,
-            actual_out_ratio
-        );
+        // 大体の比率をチェック（6分の1なので、outは大体100-200回程度）
+        assert!(out_count > 50);  // 極端に少なくない
+        assert!(out_count < 300); // 極端に多くない
     }
-    
+
     #[test]
-    fn test_all_chambers_loaded() {
-        let config = RouletteConfig {
-            chambers: 6,
-            loaded_bullets: 6,
-        };
-        let engine = RouletteEngine::new(config);
-        
-        // All spins should result in Out
-        for _ in 0..100 {
-            let result = engine.spin();
-            assert_eq!(result.outcome, RouletteOutcome::Out);
-            assert_eq!(result.loaded_chambers.len(), 6);
-        }
+    fn test_calculate_probability() {
+        assert_eq!(calculate_probability(6), 1.0 / 6.0);
+        assert_eq!(calculate_probability(1), 1.0);
+        assert_eq!(calculate_probability(0), 0.0);
     }
-    
+
     #[test]
-    fn test_no_bullets() {
-        let config = RouletteConfig {
-            chambers: 6,
-            loaded_bullets: 0,
-        };
-        let engine = RouletteEngine::new(config);
-        
-        // All spins should result in Safe
-        for _ in 0..100 {
-            let result = engine.spin();
-            assert_eq!(result.outcome, RouletteOutcome::Safe);
-            assert!(result.loaded_chambers.is_empty());
+    fn test_calculate_probability_percentage() {
+        assert_eq!(calculate_probability_percentage(6), 17.0); // 16.67% -> 17%（四捨五入）
+        assert_eq!(calculate_probability_percentage(1), 100.0);
+        assert_eq!(calculate_probability_percentage(0), 0.0);
+    }
+
+    #[test]
+    fn test_extreme_cases() {
+        // 装弾数1の場合は必ずOut
+        for _ in 0..10 {
+            assert_eq!(execute_roulette(1), RouletteResult::Out);
         }
     }
 }

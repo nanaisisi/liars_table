@@ -3,6 +3,11 @@ mod i18n;
 mod interactive;
 mod roulette;
 
+// 既存モジュール（後方互換性のため保持）
+mod card;
+mod game;
+mod player;
+
 use interactive::{InteractiveUI, InteractiveError};
 use std::process;
 
@@ -44,6 +49,8 @@ fn run_legacy_cli() {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test_main_modules_exist() {
         // モジュールが正しく読み込まれることを確認

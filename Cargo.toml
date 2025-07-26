@@ -1,7 +1,7 @@
 [package]
 name = "liars_table"
 version = "0.2.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 # 既存（簡素化）
@@ -19,3 +19,15 @@ thiserror = "1.0"  # エラーハンドリング
 # clap - コマンドライン引数不要（対話式UIに移行）
 # uuid - ゲームIDは単純化
 # chrono - タイムスタンプは実装時に検討
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

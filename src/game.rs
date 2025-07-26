@@ -1,6 +1,6 @@
 use crate::card::{Card, CardType, Deck};
 use crate::player::Player;
-use crate::roulette::{RouletteConfig, RouletteEngine, RouletteResult};
+use crate::roulette::{RouletteResult, execute_roulette};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

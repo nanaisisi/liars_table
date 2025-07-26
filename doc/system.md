@@ -567,19 +567,53 @@ pub enum GameError {
 - プレイヤー数の増加に対応
 - 将来的なネットワーク機能への拡張性
 
-## セキュリティ考慮事項
+## 品質考慮事項（実用性重視）
 
-### 乱数の安全性
+### 乱数品質
 
-- OS 提供の暗号学的乱数生成器使用
-- 予測不可能な結果保証
+- 標準的な乱数生成器使用（`rand::thread_rng()`）
+- 統計的偏りなし、予測困難性を確保
+- 暫用実装での暗号強度は不要
 
-### データ保護
+### 入力検証・堅牢性
 
-- 機密情報の適切な管理
-- 一時ファイルの安全な削除
+- 全ての外部入力の適切な検証
+- 不正入力でのクラッシュ防止
+- ユーザーフレンドリーなエラーメッセージ
 
-### 入力検証
+### データ整合性
 
-- 全ての外部入力の検証
-- SQL インジェクション等の防止
+- 設定ファイルの破損対応
+- ゲーム状態の一貫性保証
+- バックアップ・リカバリ機能
+
+### 実装例
+
+```rust
+// 乱数生成（簡素化）
+use rand::{thread_rng, Rng};
+
+pub fn spin_roulette(bullet_capacity: u8) -> bool {
+    let mut rng = thread_rng();
+    let shot = rng.gen_range(1..=bullet_capacity);
+    shot == 1 // 1番目に実弾
+}
+
+// 入力検証（強化）
+pub fn validate_input<T: std::str::FromStr>(
+    input: &str,
+    range: std::ops::RangeInclusive<T>,
+) -> Result<T, ValidationError>
+where
+    T: PartialOrd + Copy,
+{
+    let value = input.trim().parse()
+        .map_err(|_| ValidationError::ParseError)?;
+
+    if range.contains(&value) {
+        Ok(value)
+    } else {
+        Err(ValidationError::OutOfRange)
+    }
+}
+```

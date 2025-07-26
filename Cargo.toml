@@ -4,16 +4,18 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-# 既存
-clap = { version = "4.0", features = ["derive"] }
+# 既存（簡素化）
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-rand = "0.9"
-uuid = { version = "1.0", features = ["v4"] }
-chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"                                       # 標準乱数（暗号強度不要）
 
 # 新規追加（Phase 2対応）
 dialoguer = "0.11" # 対話式UI
-toml = "0.9"       # TOML設定ファイル
-dirs = "6.0"       # 設定ディレクトリ管理
-thiserror = "2.0"  # エラーハンドリング
+toml = "0.8"       # TOML設定ファイル
+dirs = "5.0"       # 設定ディレクトリ管理
+thiserror = "1.0"  # エラーハンドリング
+
+# 削除（不要になった依存関係）
+# clap - コマンドライン引数不要（対話式UIに移行）
+# uuid - ゲームIDは単純化
+# chrono - タイムスタンプは実装時に検討

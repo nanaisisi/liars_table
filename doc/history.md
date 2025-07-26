@@ -277,3 +277,103 @@ liars_table/
 | welcome          | welcome_msg     | メッセージキー |
 
 これらの変更により、より直感的で管理しやすい設計となった。
+
+## 2025 年 7 月 26 日 夜 - セキュリティ要件の見直し
+
+### 実用性重視の方針転換
+
+**背景**: ローカル使用のゲームツールとしての用途を考慮し、過剰なセキュリティ対策を見直し
+
+### セキュリティ要件の整理
+
+#### 🚫 **不要な過剰セキュリティ**
+
+1. **暗号学的乱数生成**
+
+   - 変更前：`OsRng`（暗号学的に安全）
+   - 変更後：`rand::thread_rng()`（標準的な品質）
+   - 理由：ローカルゲームで暗号強度は不要
+
+2. **SQL インジェクション対策**
+
+   - 理由：データベース使用なし、TOML/JSON 設定のみ
+
+3. **機密性保護**
+   - 理由：ゲーム設定に機密情報なし
+
+#### ✅ **必要な実用的品質**
+
+1. **乱数品質**
+
+   - 要件：予測困難、統計的偏りなし
+   - 実装：`rand`クレートの標準実装で十分
+   - Windows の実装品質を信頼
+
+2. **入力検証・堅牢性**
+
+   - 要件：不正入力でクラッシュしない
+   - 対策：適切な入力検証とエラーハンドリング
+   - 例：数値入力の範囲チェック、文字列長制限
+
+3. **エラーハンドリング**
+   - 要件：想定外状況でも動作継続
+   - 実装：`Result`型による適切なエラー処理
+
+### 新しい設計指針
+
+#### 乱数生成の簡素化
+
+```rust
+// 変更前（過剰）
+use rand::rngs::OsRng;
+let mut rng = OsRng;
+
+// 変更後（実用的）
+use rand::thread_rng;
+let mut rng = thread_rng();
+```
+
+#### 入力検証の重点化
+
+```rust
+// プレイヤー名の検証例
+fn validate_player_name(name: &str) -> Result<String, ValidationError> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        return Err(ValidationError::EmptyName);
+    }
+    if trimmed.len() > 20 {
+        return Err(ValidationError::NameTooLong);
+    }
+    Ok(trimmed.to_string())
+}
+
+// 装弾数の検証例
+fn validate_bullet_capacity(capacity: u8) -> Result<u8, ValidationError> {
+    match capacity {
+        1..=12 => Ok(capacity),
+        0 => Err(ValidationError::ZeroCapacity),
+        _ => Err(ValidationError::CapacityTooLarge),
+    }
+}
+```
+
+### 実装への影響
+
+#### Phase 2A での変更点
+
+1. **乱数生成器の変更**
+
+   - `OsRng` → `thread_rng()`
+   - 依存関係の軽量化
+
+2. **入力検証の強化**
+
+   - 対話式 UI での堅牢な入力処理
+   - エラーメッセージの多言語対応
+
+3. **エラーハンドリング設計**
+   - ユーザーフレンドリーなエラー表示
+   - 回復可能なエラーでのゲーム継続
+
+この方針により、適切な品質を保ちながら実装の複雑さを軽減し、実用性を重視した設計とする。

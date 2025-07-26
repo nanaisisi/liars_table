@@ -1,0 +1,54 @@
+# English Messages
+[language]
+code = "en"
+name = "English"
+
+# Game start
+[messages]
+welcome_msg = "🎴 Welcome to Liar's Table!"
+select_language = "Please select language:"
+game_start = "Starting the game"
+
+# Player setup
+setup_players = "Please setup players"
+player_name_prompt = "Enter name for Player {id}:"
+current_players = "Current player settings:"
+change_player_name = "Do you want to change player names?"
+which_player = "Which player number:"
+new_name = "New name:"
+
+# Roulette config
+roulette_config = "Russian Roulette Configuration"
+bullet_capacity_prompt = "Set bullet capacity (default: 6):"
+current_probability = "Current probability: 1/{capacity} = {percentage}%"
+
+# Main menu
+main_menu = "=== Main Menu ==="
+current_turn = "Current turn: {name}"
+menu_roulette = "1. Execute Russian Roulette"
+menu_player_settings = "2. Change Player Settings"
+menu_language = "3. Change Language"
+menu_roulette_settings = "4. Roulette Settings"
+menu_exit = "5. Exit"
+choose_option = "Choose an option:"
+
+# Roulette execution
+roulette_execution = "=== Russian Roulette Execution ==="
+target_player = "Target player: {name}"
+roulette_probability = "Probability: 1/{capacity} ({percentage}%)"
+confirm_execution = "Execute?"
+roulette_spinning = "🔄 Spinning the cylinder..."
+roulette_result_safe = "✅ {name} is SAFE!"
+roulette_result_out = "💀 {name} is OUT..."
+player_eliminated = "{name} has been eliminated from the game"
+
+# Game state
+active_players = "Remaining players: {count}"
+game_winner = "🎉 {name} wins!"
+continue_prompt = "Press Enter to continue..."
+
+# Error messages
+error_invalid_input = "Invalid input"
+error_player_not_found = "Player not found"
+error_config_load = "Failed to load configuration file"
+error_config_save = "Failed to save configuration file"

@@ -29,6 +29,7 @@ pub struct InteractiveUI {
 enum MainMenuChoice {
     ExecuteRoulette,
     PlayerSettings,
+    ParticipantCountSettings,
     LanguageSettings,
     RouletteSettings,
     Exit,
@@ -77,6 +78,9 @@ impl InteractiveUI {
                 }
                 MainMenuChoice::PlayerSettings => {
                     self.player_settings_menu()?;
+                }
+                MainMenuChoice::ParticipantCountSettings => {
+                    self.participant_count_settings_menu()?;
                 }
                 MainMenuChoice::LanguageSettings => {
                     self.select_language()?;
@@ -170,12 +174,25 @@ impl InteractiveUI {
             "{}",
             self.i18n.get_message_with_args("active_players", &args)?
         );
+
+        // 参加人数表示
+        args.clear();
+        args.insert(
+            "count".to_string(),
+            self.config.participant_count.to_string(),
+        );
+        println!(
+            "{}",
+            self.i18n
+                .get_message_with_args("current_participant_count", &args)?
+        );
         println!();
 
         // メニュー選択肢
         let menu_items = vec![
             self.i18n.get_message("menu_roulette")?,
             self.i18n.get_message("menu_player_settings")?,
+            self.i18n.get_message("menu_participant_count")?,
             self.i18n.get_message("menu_language")?,
             self.i18n.get_message("menu_roulette_settings")?,
             self.i18n.get_message("menu_exit")?,
@@ -191,9 +208,10 @@ impl InteractiveUI {
         match selection {
             0 => Ok(MainMenuChoice::ExecuteRoulette),
             1 => Ok(MainMenuChoice::PlayerSettings),
-            2 => Ok(MainMenuChoice::LanguageSettings),
-            3 => Ok(MainMenuChoice::RouletteSettings),
-            4 => Ok(MainMenuChoice::Exit),
+            2 => Ok(MainMenuChoice::ParticipantCountSettings),
+            3 => Ok(MainMenuChoice::LanguageSettings),
+            4 => Ok(MainMenuChoice::RouletteSettings),
+            5 => Ok(MainMenuChoice::Exit),
             _ => unreachable!(),
         }
     }
@@ -413,6 +431,49 @@ impl InteractiveUI {
         println!("\n{}", self.i18n.get_message("continue_prompt")?);
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
+        Ok(())
+    }
+
+    /// 参加人数設定メニュー
+    fn participant_count_settings_menu(&mut self) -> Result<(), InteractiveError> {
+        println!("\n{}", self.i18n.get_message("participant_count_setting")?);
+
+        let mut args = HashMap::new();
+        args.insert(
+            "count".to_string(),
+            self.config.participant_count.to_string(),
+        );
+        println!(
+            "{}",
+            self.i18n
+                .get_message_with_args("current_participant_count", &args)?
+        );
+
+        let new_count: u8 = Input::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message("set_participant_count")?)
+            .default(self.config.participant_count)
+            .validate_with(|input: &u8| -> Result<(), &str> {
+                if *input >= 2 && *input <= 4 {
+                    Ok(())
+                } else {
+                    Err("Participant count must be between 2 and 4")
+                }
+            })
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("Participant count input failed: {}", e))
+            })?;
+
+        self.config.set_participant_count(new_count)?;
+
+        let mut args = HashMap::new();
+        args.insert("count".to_string(), new_count.to_string());
+        println!(
+            "✓ {}",
+            self.i18n
+                .get_message_with_args("participant_count_updated", &args)?
+        );
+
         Ok(())
     }
 }

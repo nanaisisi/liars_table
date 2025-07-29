@@ -9,6 +9,7 @@ pub enum ConfigError {
     #[allow(dead_code)] // 将来のバージョンで使用予定
     ConfigNotFound,
     #[error("Failed to parse configuration: {0}")]
+    #[allow(dead_code)] // 現在は直接エラーハンドリングしているため未使用
     ParseError(String),
     #[error("Invalid configuration value: {0}")]
     InvalidValue(String),
@@ -33,6 +34,13 @@ pub struct GameConfig {
     pub bullet_capacity: u8, // 装弾数（シリンダー容量）
     pub players: Vec<Player>,
     pub current_turn: u8, // 現在のターンのプレイヤーID
+    #[serde(default = "default_participant_count")]
+    pub participant_count: u8, // 参加人数（2-4人）
+}
+
+/// participant_countのデフォルト値
+fn default_participant_count() -> u8 {
+    4
 }
 
 impl Default for GameConfig {
@@ -40,6 +48,7 @@ impl Default for GameConfig {
         Self {
             language: "ja".to_string(),
             bullet_capacity: 6,
+            participant_count: 4, // デフォルトは4人参加
             players: vec![
                 Player {
                     id: 1,
@@ -80,13 +89,28 @@ impl GameConfig {
         }
 
         let content = fs::read_to_string(&config_path)?;
-        let config: GameConfig =
-            toml::from_str(&content).map_err(|e| ConfigError::ParseError(format!("{}", e)))?;
+        let config_result: Result<GameConfig, toml::de::Error> = toml::from_str(&content);
 
-        // 設定値の検証
-        config.validate()?;
-
-        Ok(config)
+        match config_result {
+            Ok(config) => {
+                // 設定値の検証
+                config.validate()?;
+                Ok(config)
+            }
+            Err(e) => {
+                // パースエラーが発生した場合（古い形式など）、設定ファイルを削除してデフォルト設定を使用
+                eprintln!(
+                    "⚠️ 設定ファイルの形式が古いため、デフォルト設定にリセットします: {}",
+                    e
+                );
+                if let Err(remove_err) = fs::remove_file(&config_path) {
+                    eprintln!("警告: 古い設定ファイルの削除に失敗しました: {}", remove_err);
+                }
+                let default_config = Self::default();
+                default_config.save()?;
+                Ok(default_config)
+            }
+        }
     }
 
     /// 設定ファイルに保存する
@@ -187,9 +211,41 @@ impl GameConfig {
         self.players.iter().filter(|p| p.is_active).count()
     }
 
-    /// アクティブなプレイヤーのリストを取得
+    /// アクティブなプレイヤーのリストを取得（参加人数に基づく）
     pub fn active_players(&self) -> Vec<&Player> {
-        self.players.iter().filter(|p| p.is_active).collect()
+        self.players
+            .iter()
+            .filter(|p| p.is_active && p.id <= self.participant_count)
+            .collect()
+    }
+
+    /// 参加人数を設定（2-4人）
+    #[allow(dead_code)] // interactive.rsで使用される
+    pub fn set_participant_count(&mut self, count: u8) -> Result<(), ConfigError> {
+        if count < 2 || count > 4 {
+            return Err(ConfigError::InvalidValue(
+                "Participant count must be between 2 and 4".to_string(),
+            ));
+        }
+
+        self.participant_count = count;
+
+        // 参加人数を超えるプレイヤーを非アクティブ化
+        for player in &mut self.players {
+            if player.id > count {
+                player.is_active = false;
+            } else if player.id <= count {
+                // 参加範囲内のプレイヤーをアクティブ化（ゲーム中でない限り）
+                player.is_active = true;
+            }
+        }
+
+        // 現在のターンが参加範囲外の場合、最初のプレイヤーに設定
+        if self.current_turn > count {
+            self.current_turn = 1;
+        }
+
+        Ok(())
     }
 
     /// プレイヤーをIDで検索

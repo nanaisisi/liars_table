@@ -276,8 +276,7 @@ impl InteractiveUI {
                     self.i18n
                         .get_message_with_args("roulette_result_safe", &args)?
                 );
-                // ターンを次に移す
-                self.config.next_turn();
+                // セーフな場合は同じプレイヤーが続行
             }
             RouletteResult::Out => {
                 println!(
@@ -290,7 +289,7 @@ impl InteractiveUI {
                     self.i18n
                         .get_message_with_args("player_eliminated", &args)?
                 );
-                // プレイヤーを除外
+                // プレイヤーを除外（eliminate_playerメソッド内で自動的にターンが進む）
                 self.config.eliminate_player(target_player.id)?;
             }
         }

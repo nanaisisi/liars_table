@@ -123,8 +123,6 @@ Planning to complete the actual card game experience:
 
 ```
 liars_table/
-├── .cargo/
-│   └── config.toml      # Build optimization settings
 ├── src/
 │   ├── config.rs         # Configuration management
 │   ├── i18n.rs          # Multi-language support
@@ -134,10 +132,12 @@ liars_table/
 ├── languages/
 │   ├── ja.toml          # Japanese messages
 │   └── en.toml          # English messages
-└── doc/
-    ├── concept.md       # Game specification
-    ├── history.md       # Development history
-    └── v0.3_plan.md     # v0.3 plan
+├── doc/
+│   ├── concept.md       # Game specification
+│   ├── history.md       # Development history
+│   └── v0.3_plan.md     # v0.3 plan
+├── config.toml          # Build optimization settings
+└── Cargo.toml           # Package configuration
 ```
 
 ## Troubleshooting
@@ -188,7 +188,7 @@ cargo build --profile android-dev # Android development
 
 **About Build Configuration**
 
-The project includes build optimization settings in `.cargo/config.toml` by default.
+The project includes build optimization settings in `config.toml` (project root) by default.
 This enables fast builds but requires the following tools:
 
 ```bash
@@ -206,10 +206,10 @@ sudo apt-get install mold clang  # Fast linker
 
 **For Simple Builds**
 
-If you don't want to install the above tools, delete `.cargo/config.toml` first:
+If you don't want to install the above tools, delete `config.toml` first:
 
 ```bash
-rm .cargo/config.toml  # or delete manually
+rm config.toml  # or delete manually
 cargo build --release
 ```
 

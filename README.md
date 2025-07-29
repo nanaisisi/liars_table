@@ -124,8 +124,6 @@ cargo run
 
 ```
 liars_table/
-├── .cargo/
-│   └── config.toml      # ビルド最適化設定
 ├── src/
 │   ├── config.rs         # 設定管理
 │   ├── i18n.rs          # 多言語対応
@@ -135,10 +133,12 @@ liars_table/
 ├── languages/
 │   ├── ja.toml          # 日本語メッセージ
 │   └── en.toml          # 英語メッセージ
-└── doc/
-    ├── concept.md       # ゲーム仕様書
-    ├── history.md       # 開発経緯
-    └── v0.3_plan.md     # v0.3企画書
+├── doc/
+│   ├── concept.md       # ゲーム仕様書
+│   ├── history.md       # 開発経緯
+│   └── v0.3_plan.md     # v0.3企画書
+├── config.toml          # ビルド最適化設定
+└── Cargo.toml           # パッケージ設定
 ```
 
 ## トラブルシューティング
@@ -195,7 +195,7 @@ cargo build --profile android-dev # Android向け開発用
 
 **ビルド設定について**
 
-プロジェクトには `.cargo/config.toml` でビルド最適化設定がデフォルトで含まれています。
+プロジェクトには `config.toml`（プロジェクト直下）でビルド最適化設定がデフォルトで含まれています。
 この設定により高速なビルドが可能ですが、以下のツールが必要です：
 
 ```bash
@@ -213,10 +213,10 @@ sudo apt-get install mold clang  # 高速リンカー
 
 **シンプルなビルドを行いたい場合**
 
-上記ツールをインストールしたくない場合は、`.cargo/config.toml` を削除してから：
+上記ツールをインストールしたくない場合は、`config.toml` を削除してから：
 
 ```bash
-rm .cargo/config.toml  # または手動で削除
+rm config.toml  # または手動で削除
 cargo build --release
 ```
 

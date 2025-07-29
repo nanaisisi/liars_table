@@ -30,6 +30,8 @@ enum MainMenuChoice {
     ExecuteRoulette,
     PlayerSettings,
     ParticipantCountSettings,
+    PlayerRecovery,
+    PlayerRevive,
     LanguageSettings,
     RouletteSettings,
     Exit,
@@ -95,6 +97,12 @@ impl InteractiveUI {
                 }
                 MainMenuChoice::ParticipantCountSettings => {
                     self.participant_count_settings_menu()?;
+                }
+                MainMenuChoice::PlayerRecovery => {
+                    self.player_recovery_menu()?;
+                }
+                MainMenuChoice::PlayerRevive => {
+                    self.player_revive_menu()?;
                 }
                 MainMenuChoice::LanguageSettings => {
                     self.select_language()?;
@@ -179,10 +187,20 @@ impl InteractiveUI {
         }
 
         // アクティブプレイヤー数表示
+        let active_count = self.config.active_player_count();
+        let total_players = self.config.players.len();
+        println!("DEBUG: アクティブプレイヤー: {}/{}", active_count, total_players);
+        
+        // プレイヤー詳細表示
+        for player in &self.config.players {
+            println!("DEBUG: プレイヤー{}: {} (アクティブ: {})", 
+                player.id, player.name, player.is_active);
+        }
+        
         let mut args = HashMap::new();
         args.insert(
             "count".to_string(),
-            self.config.active_player_count().to_string(),
+            active_count.to_string(),
         );
         println!(
             "{}",
@@ -207,6 +225,8 @@ impl InteractiveUI {
             self.i18n.get_message("menu_roulette")?,
             self.i18n.get_message("menu_player_settings")?,
             self.i18n.get_message("menu_participant_count")?,
+            self.i18n.get_message("menu_player_recovery")?,
+            self.i18n.get_message("menu_player_revive")?,
             self.i18n.get_message("menu_language")?,
             self.i18n.get_message("menu_roulette_settings")?,
             self.i18n.get_message("menu_exit")?,
@@ -223,9 +243,11 @@ impl InteractiveUI {
             0 => Ok(MainMenuChoice::ExecuteRoulette),
             1 => Ok(MainMenuChoice::PlayerSettings),
             2 => Ok(MainMenuChoice::ParticipantCountSettings),
-            3 => Ok(MainMenuChoice::LanguageSettings),
-            4 => Ok(MainMenuChoice::RouletteSettings),
-            5 => Ok(MainMenuChoice::Exit),
+            3 => Ok(MainMenuChoice::PlayerRecovery),
+            4 => Ok(MainMenuChoice::PlayerRevive),
+            5 => Ok(MainMenuChoice::LanguageSettings),
+            6 => Ok(MainMenuChoice::RouletteSettings),
+            7 => Ok(MainMenuChoice::Exit),
             _ => unreachable!(),
         }
     }
@@ -234,15 +256,32 @@ impl InteractiveUI {
     fn execute_roulette(&mut self) -> Result<(), InteractiveError> {
         println!("\n{}", self.i18n.get_message("roulette_execution")?);
 
-        // 現在のターンのプレイヤーを自動的に対象にする
-        let target_player = match self.config.current_player() {
-            Some(player) => player,
-            None => {
-                return Err(InteractiveError::DialogError(
-                    "No current player found".to_string(),
-                ));
-            }
-        };
+        // アクティブなプレイヤーを取得
+        let active_players: Vec<&crate::config::Player> =
+            self.config.players.iter().filter(|p| p.is_active).collect();
+
+        if active_players.is_empty() {
+            return Err(InteractiveError::DialogError(
+                "No active players found".to_string(),
+            ));
+        }
+
+        // プレイヤー選択
+        let player_names: Vec<String> = active_players
+            .iter()
+            .map(|p| format!("{}: {}", p.id, p.name))
+            .collect();
+
+        let selection = Select::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message("select_target_player")?)
+            .items(&player_names)
+            .default(0)
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("Player selection failed: {}", e))
+            })?;
+
+        let target_player = active_players[selection];
 
         // 対象プレイヤー表示
         let mut args = HashMap::new();
@@ -275,6 +314,7 @@ impl InteractiveUI {
             .map_err(|e| InteractiveError::DialogError(format!("Confirmation failed: {}", e)))?;
 
         if !confirmed {
+            // 実行しない場合はそのまま戻る
             return Ok(());
         }
 
@@ -294,18 +334,6 @@ impl InteractiveUI {
                     self.i18n
                         .get_message_with_args("roulette_result_safe", &args)?
                 );
-                // セーフな場合は次のプレイヤーにターンを移す
-                self.config.next_turn();
-
-                // 次のプレイヤーを表示
-                if let Some(next_player) = self.config.current_player() {
-                    let mut next_args = HashMap::new();
-                    next_args.insert("name".to_string(), next_player.name.clone());
-                    println!(
-                        "{}",
-                        self.i18n.get_message_with_args("next_turn", &next_args)?
-                    );
-                }
             }
             RouletteResult::Out => {
                 println!(
@@ -318,18 +346,8 @@ impl InteractiveUI {
                     self.i18n
                         .get_message_with_args("player_eliminated", &args)?
                 );
-                // プレイヤーを除外（eliminate_playerメソッド内で自動的にターンが進む）
+                // プレイヤーを除外
                 self.config.eliminate_player(target_player.id)?;
-
-                // 次のプレイヤーを表示（ゲーム終了でない場合）
-                if let Some(next_player) = self.config.current_player() {
-                    let mut next_args = HashMap::new();
-                    next_args.insert("name".to_string(), next_player.name.clone());
-                    println!(
-                        "{}",
-                        self.i18n.get_message_with_args("next_turn", &next_args)?
-                    );
-                }
             }
         }
 
@@ -516,6 +534,133 @@ impl InteractiveUI {
             })?;
 
         Ok(confirmed)
+    }
+
+    /// プレイヤー回復メニュー
+    fn player_recovery_menu(&mut self) -> Result<(), InteractiveError> {
+        println!("\n{}", self.i18n.get_message("player_recovery")?);
+
+        // 回復可能なプレイヤー（非アクティブで参加人数範囲内）を取得
+        let recoverable_players: Vec<(u8, String)> = self
+            .config
+            .players
+            .iter()
+            .filter(|p| !p.is_active && p.id <= self.config.participant_count)
+            .map(|p| (p.id, p.name.clone()))
+            .collect();
+
+        if recoverable_players.is_empty() {
+            println!("{}", self.i18n.get_message("no_players_to_recover")?);
+            self.wait_for_continue()?;
+            return Ok(());
+        }
+
+        let player_names: Vec<String> = recoverable_players
+            .iter()
+            .map(|(id, name)| format!("{}: {}", id, name))
+            .collect();
+
+        let selection = Select::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message("select_recovery_target")?)
+            .items(&player_names)
+            .default(0)
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("Recovery target selection failed: {}", e))
+            })?;
+
+        let (target_id, target_name) = &recoverable_players[selection];
+
+        // 確認
+        let mut args = HashMap::new();
+        args.insert("name".to_string(), target_name.clone());
+        let confirmed = Confirm::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message_with_args("confirm_recovery", &args)?)
+            .default(true)
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("Recovery confirmation failed: {}", e))
+            })?;
+
+        if confirmed {
+            // プレイヤーを回復（アクティブ化）
+            if let Some(player) = self.config.get_player_mut(*target_id) {
+                player.is_active = true;
+            }
+
+            println!(
+                "{}",
+                self.i18n.get_message_with_args("player_recovered", &args)?
+            );
+        }
+
+        Ok(())
+    }
+
+    /// プレイヤー蘇生メニュー
+    fn player_revive_menu(&mut self) -> Result<(), InteractiveError> {
+        println!("\n{}", self.i18n.get_message("player_revive")?);
+
+        // 蘇生可能なプレイヤー（非アクティブで参加人数範囲外）を取得
+        let revivable_players: Vec<(u8, String)> = self
+            .config
+            .players
+            .iter()
+            .filter(|p| !p.is_active && p.id > self.config.participant_count)
+            .map(|p| (p.id, p.name.clone()))
+            .collect();
+
+        if revivable_players.is_empty() {
+            println!("{}", self.i18n.get_message("no_players_to_revive")?);
+            self.wait_for_continue()?;
+            return Ok(());
+        }
+
+        let player_names: Vec<String> = revivable_players
+            .iter()
+            .map(|(id, name)| format!("{}: {}", id, name))
+            .collect();
+
+        let selection = Select::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message("select_revive_target")?)
+            .items(&player_names)
+            .default(0)
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("Revive target selection failed: {}", e))
+            })?;
+
+        let (target_id, target_name) = &revivable_players[selection];
+
+        // 確認
+        let mut args = HashMap::new();
+        args.insert("name".to_string(), target_name.clone());
+        let confirmed = Confirm::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message_with_args("confirm_revive", &args)?)
+            .default(true)
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("Revive confirmation failed: {}", e))
+            })?;
+
+        if confirmed {
+            let target_id = *target_id;
+            // プレイヤーを蘇生（アクティブ化し、参加人数を増やす）
+            if let Some(player) = self.config.get_player_mut(target_id) {
+                player.is_active = true;
+                // 参加人数を増やして蘇生したプレイヤーを含める
+                if self.config.participant_count < target_id {
+                    self.config.participant_count = target_id;
+                }
+            }
+
+            println!(
+                "{}",
+                self.i18n.get_message_with_args("player_revived", &args)?
+            );
+        }
+
+        Ok(())
     }
 }
 

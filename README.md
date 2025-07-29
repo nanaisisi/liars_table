@@ -137,7 +137,7 @@ liars_table/
 │   ├── concept.md       # ゲーム仕様書
 │   ├── history.md       # 開発経緯
 │   └── v0.3_plan.md     # v0.3企画書
-├── config.toml          # ビルド最適化設定
+├── config.toml          # 高速コンパイル設定
 └── Cargo.toml           # パッケージ設定
 ```
 
@@ -181,7 +181,7 @@ scoop install git
 rustup component add rustfmt clippy
 ```
 
-#### ビルド最適化
+#### コンパイル手法
 
 ```bash
 # リリースビルド（最適化済み）
@@ -193,10 +193,10 @@ cargo build --profile server-dev  # サーバー向け開発用
 cargo build --profile android-dev # Android向け開発用
 ```
 
-**ビルド設定について**
+**コンパイル設定について**
 
-プロジェクトには `config.toml`（プロジェクト直下）でビルド最適化設定がデフォルトで含まれています。
-この設定により高速なビルドが可能ですが、以下のツールが必要です：
+プロジェクトには `config.toml`（プロジェクト直下）で高速コンパイル設定がデフォルトで含まれています。
+この設定により高速なコンパイルが可能ですが、以下のツールが必要です：
 
 ```bash
 # 必要なツールのインストール（必須）
@@ -211,7 +211,7 @@ scoop install sccache  # ビルドキャッシュ
 sudo apt-get install mold clang  # 高速リンカー
 ```
 
-**シンプルなビルドを行いたい場合**
+**シンプルなコンパイルを行いたい場合**
 
 上記ツールをインストールしたくない場合は、`config.toml` を削除してから：
 

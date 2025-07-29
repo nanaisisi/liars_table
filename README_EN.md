@@ -136,7 +136,7 @@ liars_table/
 │   ├── concept.md       # Game specification
 │   ├── history.md       # Development history
 │   └── v0.3_plan.md     # v0.3 plan
-├── config.toml          # Build optimization settings
+├── config.toml          # Fast compilation settings
 └── Cargo.toml           # Package configuration
 ```
 
@@ -174,7 +174,7 @@ scoop install git
 rustup component add rustfmt clippy
 ```
 
-#### Build Optimization
+#### Compilation Methods
 
 ```bash
 # Release build (optimized)
@@ -186,10 +186,10 @@ cargo build --profile server-dev  # Server development
 cargo build --profile android-dev # Android development
 ```
 
-**About Build Configuration**
+**About Compilation Configuration**
 
-The project includes build optimization settings in `config.toml` (project root) by default.
-This enables fast builds but requires the following tools:
+The project includes fast compilation settings in `config.toml` (project root) by default.
+This enables fast compilation but requires the following tools:
 
 ```bash
 # Install required tools (mandatory)
@@ -204,7 +204,7 @@ scoop install sccache  # Build cache
 sudo apt-get install mold clang  # Fast linker
 ```
 
-**For Simple Builds**
+**For Simple Compilation**
 
 If you don't want to install the above tools, delete `config.toml` first:
 

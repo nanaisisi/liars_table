@@ -43,7 +43,7 @@ cargo run
 3. **Game Progress Example**
 
    ```
-   === Liar's Table v0.3 ===
+   === Liar's Table ===
 
    Taro's turn
    ✔ Card type to declare: › ACE
@@ -93,16 +93,16 @@ cargo run
 - Language switching (Japanese/English)
 - Game history recording
 
-### 🎯 Planned for v0.3
+### 🚧 Planned Features
 
 - [ ] Card play recording feature
 - [ ] Challenge determination system
 - [ ] Card verification & validation feature
 - [ ] Basic statistics display
 
-## Development Status
+## Current Features
 
-### ✅ v0.2.0 (Current)
+### ✅ Implemented Features
 
 - Interactive UI
 - Multi-language support (Japanese/English)
@@ -110,7 +110,7 @@ cargo run
 - Russian roulette feature
 - Settings persistence
 
-### 🚧 v0.3.0 (In Development)
+### 🚧 Features in Development
 
 Planning to complete the actual card game experience:
 
@@ -231,7 +231,7 @@ cargo build --release
 
 - [Specification](doc/concept.md) - Detailed game rules
 - [Development History](doc/history.md) - Design philosophy and evolution
-- [v0.0.1 Implementation Plan](doc/v0.0.1_plan.md) - Initial version plan
+- [v0.0.1 Implementation Plan](doc/v0.0.1_plan.md) - Implementation plan
 
 ## License
 

@@ -8,7 +8,7 @@
 
 ## Overview
 
-Liar's Table is a **digital assistant tool** for a 2-4 player psychological warfare game using actual playing cards (6 each of ACE, QUEEN, KING, and 2 JOKERs, totaling 20 cards).
+Liar's Table is a **digital assistant tool** for a 2-4 player psychological warfare game inspired by the video game "[Liar's Bar](https://store.steampowered.com/app/3097560/Liars_Bar/)", using actual playing cards (6 each of ACE, QUEEN, KING, and 2 JOKERs, totaling 20 cards).
 
 ## Installation
 

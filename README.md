@@ -9,7 +9,7 @@
 
 ## 概要
 
-Liar's Table は、実際のトランプカード（ACE・QUEEN・KING 各 6 枚、JOKER 2 枚の計 20 枚）を使った 2-4 人用心理戦ゲームの**デジタル補助ツール**です。
+Liar's Table は、ビデオゲーム「[Liar's Bar](https://store.steampowered.com/app/3097560/Liars_Bar/)」にインスパイアされた、実際のトランプカード（ACE・QUEEN・KING 各 6 枚、JOKER 2 枚の計 20 枚）を使った 2-4 人用心理戦ゲームの**デジタル補助ツール**です。
 
 ## インストール
 

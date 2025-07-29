@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ConfigError {
     #[error("Configuration file not found")]
-    #[allow(dead_code)] // v0.0.2で使用予定
+    #[allow(dead_code)] // 将来のバージョンで使用予定
     ConfigNotFound,
     #[error("Failed to parse configuration: {0}")]
     ParseError(String),

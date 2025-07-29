@@ -129,7 +129,7 @@ impl I18nManager {
     }
 
     /// 現在の言語コードを取得
-    #[allow(dead_code)] // v0.0.2で使用予定
+    #[allow(dead_code)] // 将来のバージョンで使用予定
     pub fn current_language(&self) -> &str {
         &self.current_language
     }

@@ -124,6 +124,8 @@ cargo run
 
 ```
 liars_table/
+├── .cargo/
+│   └── config.toml      # ビルド最適化設定
 ├── src/
 │   ├── config.rs         # 設定管理
 │   ├── i18n.rs          # 多言語対応
@@ -165,6 +167,64 @@ liars_table init [OPTIONS]
 - **主要依存関係**: dialoguer, serde, toml, dirs, thiserror
 - **テスト**: `cargo test`
 - **ビルド**: `cargo build --release`
+
+#### Rust 環境構築（推奨）
+
+```bash
+# Windows - 公式インストーラー経由でのRust導入（推奨）
+# https://rustup.rs/ からrustup-init.exeをダウンロードして実行
+rustup default stable
+
+# 開発用の追加ツール
+# scoopでgitを導入（任意）
+scoop install git
+rustup component add rustfmt clippy
+```
+
+#### ビルド最適化
+
+```bash
+# リリースビルド（最適化済み）
+cargo build --release
+
+# プロファイル別ビルド（開発用）
+cargo build --profile wasm-dev    # WASM向け開発用
+cargo build --profile server-dev  # サーバー向け開発用
+cargo build --profile android-dev # Android向け開発用
+```
+
+**ビルド設定について**
+
+プロジェクトには `.cargo/config.toml` でビルド最適化設定がデフォルトで含まれています。
+この設定により高速なビルドが可能ですが、以下のツールが必要です：
+
+```bash
+# 必要なツールのインストール（必須）
+rustup toolchain install nightly
+rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+rustup component add llvm-tools-preview --toolchain nightly
+
+# Windows環境
+scoop install sccache  # ビルドキャッシュ
+
+# Linux環境
+sudo apt-get install mold clang  # 高速リンカー
+```
+
+**シンプルなビルドを行いたい場合**
+
+上記ツールをインストールしたくない場合は、`.cargo/config.toml` を削除してから：
+
+```bash
+rm .cargo/config.toml  # または手動で削除
+cargo build --release
+```
+
+#### 依存関係の管理
+
+- **軽量化**: 不要な依存関係は削除済み（clap, uuid, chrono 等）
+- **安定性**: 実績のある crate のみ使用
+- **メンテナンス性**: 依存関係は最小限に抑制
 
 ### 貢献方法
 

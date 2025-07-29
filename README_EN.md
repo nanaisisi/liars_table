@@ -123,6 +123,8 @@ Planning to complete the actual card game experience:
 
 ```
 liars_table/
+├── .cargo/
+│   └── config.toml      # Build optimization settings
 ├── src/
 │   ├── config.rs         # Configuration management
 │   ├── i18n.rs          # Multi-language support
@@ -158,6 +160,64 @@ liars_table/
 - **Main Dependencies**: dialoguer, serde, toml, dirs, thiserror
 - **Testing**: `cargo test`
 - **Build**: `cargo build --release`
+
+#### Rust Environment Setup (Recommended)
+
+```bash
+# Windows - Official installer for Rust (recommended)
+# Download rustup-init.exe from https://rustup.rs/ and run it
+rustup default stable
+
+# Additional development tools
+# Install git via scoop (optional)
+scoop install git
+rustup component add rustfmt clippy
+```
+
+#### Build Optimization
+
+```bash
+# Release build (optimized)
+cargo build --release
+
+# Profile-specific builds (development)
+cargo build --profile wasm-dev    # WASM development
+cargo build --profile server-dev  # Server development
+cargo build --profile android-dev # Android development
+```
+
+**About Build Configuration**
+
+The project includes build optimization settings in `.cargo/config.toml` by default.
+This enables fast builds but requires the following tools:
+
+```bash
+# Install required tools (mandatory)
+rustup toolchain install nightly
+rustup component add rustc-codegen-cranelift-preview --toolchain nightly
+rustup component add llvm-tools-preview --toolchain nightly
+
+# Windows environment
+scoop install sccache  # Build cache
+
+# Linux environment
+sudo apt-get install mold clang  # Fast linker
+```
+
+**For Simple Builds**
+
+If you don't want to install the above tools, delete `.cargo/config.toml` first:
+
+```bash
+rm .cargo/config.toml  # or delete manually
+cargo build --release
+```
+
+#### Dependency Management
+
+- **Lightweight**: Unnecessary dependencies removed (clap, uuid, chrono, etc.)
+- **Stability**: Only proven crates are used
+- **Maintainability**: Dependencies kept to minimum
 
 ### How to Contribute
 

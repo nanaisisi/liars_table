@@ -4,21 +4,16 @@ version = "0.3.0"
 edition = "2024"
 
 [dependencies]
-# 既存（簡素化）
+# コア機能
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-rand = "0.8"                                       # 標準乱数（暗号強度不要）
+rand = "0.8"
 
-# 新規追加（Phase 2対応）
+# UI・設定管理
 dialoguer = "0.11" # 対話式UI
 toml = "0.8"       # TOML設定ファイル
 dirs = "5.0"       # 設定ディレクトリ管理
 thiserror = "1.0"  # エラーハンドリング
-
-# 削除（不要になった依存関係）
-# clap - コマンドライン引数不要（対話式UIに移行）
-# uuid - ゲームIDは単純化
-# chrono - タイムスタンプは実装時に検討
 
 [profile]
 

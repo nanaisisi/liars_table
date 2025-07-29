@@ -4,7 +4,6 @@ channel = "nightly"
 
 #"-Zlinker-features=-lld"
 
-
 #cargo binstall sccache= "sccache"
 #scoop install sccache
 [build]
@@ -26,7 +25,7 @@ codegen-backend = "llvm"
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
 rustflags = [
-    #nightly
+  #nightly
   "-Zshare-generics=y",
 ]
 
@@ -36,9 +35,10 @@ rustflags = [
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 rustflags = [
-    #nightly
+  #nightly
   "-Zshare-generics=y",
-  "-C", "link-arg=-fuse-ld=mold"
+  "-C",
+  "link-arg=-fuse-ld=mold",
 ]
 
 #linux aarch64

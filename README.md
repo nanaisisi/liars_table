@@ -3,11 +3,13 @@
 
 # Liar's Table
 
-トランプを使ったロシアンルーレット要素付き心理戦カードゲーム「Liar's Table」の CLI ツールです。
+**実際のトランプカードと併用する心理戦ゲーム補助ツール**
+
+[🇺🇸 English README](README_EN.md)
 
 ## 概要
 
-Liar's Table は、ACE・QUEEN・KING・JOKER 各 4 枚を使った 2-3 人用のカードゲームです。プレイヤーは手札から複数枚を伏せて出し、その内容について真偽を競います。嘘がバレた場合、または間違った指摘をした場合、ロシアンルーレットが発動します。
+Liar's Table は、実際のトランプカード（ACE・QUEEN・KING 各 6 枚、JOKER 2 枚の計 20 枚）を使った 2-4 人用心理戦ゲームの**デジタル補助ツール**です。
 
 ## インストール
 
@@ -15,128 +17,139 @@ Liar's Table は、ACE・QUEEN・KING・JOKER 各 4 枚を使った 2-3 人用�
 
 - Rust 1.70 以上
 
-### ビルド
+### ビルドと実行
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/nanaisisi/liars_table
 cd liars_table
 cargo build --release
+cargo run
 ```
-
-実行ファイルは `target/release/liars_table` に生成されます。
 
 ## 基本的な使い方
 
-### 1. ゲームの初期化
+### 🃏 実際のカードゲームと併用
 
-```bash
-liars_table init --players 3 --bullets 1
+1. **物理的な準備**
+
+   - ACE・QUEEN・KING 各 6 枚、JOKER 2 枚を用意（計 20 枚）
+   - 各プレイヤーに適切に配布（2 人なら 10 枚ずつ、3 人なら 6-7 枚ずつ、4 人なら 5 枚ずつ）
+
+2. **プログラム起動**
+
+   ```bash
+   cargo run
+   ```
+
+3. **ゲーム進行の例**
+
+   ```
+   === Liar's Table v0.3 ===
+
+   太郎のターンです
+   ✔ 宣言する種類: › ACE
+   ✔ 出すカード枚数: › 2
+   → 太郎がACE 2枚を宣言しました
+
+   花子のターンです
+   太郎の宣言: ACE 2枚
+   ✔ どうしますか？
+     › Accept (信じる)
+       Challenge (Liarだと思う)
+   ```
+
+## ゲームルール（簡単版）
+
+### 基本ルール
+
+1. **カード出し**: 現在のプレイヤーが実際のカードを伏せて出し、種類を宣言
+2. **チャレンジ判断**: 次のプレイヤーが「Accept（信じる）」か「Challenge（疑う）」を選択
+3. **結果処理**: Challenge の場合、カードを確認し、嘘なら出した人が、正直なら疑った人がロシアンルーレット
+
+### 宣言ルール
+
+- **宣言可能**: ACE、QUEEN、KING のみ
+- **有効カード**: 宣言した種類 または JOKER（万能）
+- **カード構成**: ACE・QUEEN・KING 各 6 枚、JOKER 2 枚
+- **JOKER**: どの宣言に対しても有効
+
+### ロシアンルーレット
+
+- **確率**: 1/6 ≈ 16.7%（装弾数は設定可能）
+- **結果**: OUT（敗北）または SAFE（ゲーム続行）
+
+## 主な機能
+
+### 🎮 ゲーム進行サポート
+
+- 順番制ターン管理
+- カードプレイの記録
+- Accept/Challenge 選択
+- チャレンジ結果の判定
+
+### ⚙️ 設定・管理
+
+- プレイヤー名のカスタマイズ
+- 装弾数の調整（1-12 発）
+- 言語切り替え（日本語/英語）
+- ゲーム履歴の記録
+
+### 🎯 v0.3 で追加予定
+
+- [ ] カードプレイ記録機能
+- [ ] チャレンジ判定システム
+- [ ] カード確認・検証機能
+- [ ] 基本統計表示
+
+## 開発状況
+
+### ✅ v0.2.0（現在）
+
+- 対話式 UI
+- 多言語対応（日本語/英語）
+- プレイヤー管理・名前設定
+- ロシアンルーレット機能
+- 設定の永続化
+
+### 🚧 v0.3.0（開発中）
+
+実際のカードゲーム体験を完成させる予定：
+
+- カードプレイ記録機能
+- 順番制チャレンジシステム
+- カード検証・判定機能
+- 基本統計・履歴機能
+
+## プロジェクト構造
+
+```
+liars_table/
+├── src/
+│   ├── config.rs         # 設定管理
+│   ├── i18n.rs          # 多言語対応
+│   ├── interactive.rs    # 対話式UI
+│   ├── roulette.rs      # ロシアンルーレット
+│   └── main.rs          # エントリーポイント
+├── languages/
+│   ├── ja.toml          # 日本語メッセージ
+│   └── en.toml          # 英語メッセージ
+└── doc/
+    ├── concept.md       # ゲーム仕様書
+    ├── history.md       # 開発経緯
+    └── v0.3_plan.md     # v0.3企画書
 ```
 
-- `--players`: プレイヤー数（2-3 人）
-- `--bullets`: ロシアンルーレットの装弾数（1-3 発、デフォルト 1 発）
+## トラブルシューティング
 
-### 2. カードの配布
+### 設定ファイルの場所
 
-```bash
-liars_table deal
-```
+- Windows: `C:\Users\[username]\.liars_table\config.toml`
+- 設定リセット: 上記ファイルを削除して再起動
 
-実行すると、各プレイヤーに 5 枚ずつカードが配られ、以下のように表示されます：
+### よくある問題
 
-```
-Player 1: [A♠, Q♥, K♣, Joker, A♦]
-Player 2: [Q♠, K♥, Joker, Q♣, K♠]
-Player 3: [A♥, K♦, Q♦, Joker, A♣]
-```
-
-### 3. カードをプレイ
-
-```bash
-liars_table play --player 1 --cards 1,3 --declare ace
-```
-
-- `--player`: プレイヤー ID（1-3）
-- `--cards`: 出すカードの位置（カンマ区切り、1 から始まる）
-- `--declare`: 宣言する種類（`ace`, `queen`, `king`）
-
-### 4. チャレンジ（Liar 指摘）
-
-```bash
-liars_table challenge --challenger 2
-```
-
-前のプレイヤーが嘘をついていると思う場合に実行します。
-
-結果例：
-
-```
-Challenge Result: CORRECT
-Player 1 was lying! (Played: Q♥, K♣)
-Player 1 must face Russian Roulette.
-```
-
-### 5. ロシアンルーレット
-
-```bash
-liars_table roulette --target 1
-```
-
-指定されたプレイヤーがロシアンルーレットを実行します。
-
-結果例：
-
-```
-Russian Roulette Result: SAFE
-Player 1 survives this round.
-```
-
-または
-
-```
-Russian Roulette Result: OUT
-Player 1 is eliminated from the game.
-```
-
-### 6. ゲーム状態の確認
-
-```bash
-liars_table status
-```
-
-現在のゲーム状態を表示：
-
-```
-=== Game Status ===
-Current Turn: Player 2
-Active Players: 3
-
-Player 1: 3 cards [Active]
-Player 2: 4 cards [Active] ← Current
-Player 3: 5 cards [Active]
-
-Roulette Config: 6 chambers, 1 bullet
-```
-
-## ゲームの流れ
-
-1. **ゲーム初期化**: プレイヤー数と装弾数を設定
-2. **カード配布**: 各プレイヤーに 5 枚ずつ配布
-3. **ゲーム開始**: プレイヤー 1 から順番に開始
-
-### ターンの流れ
-
-1. 現在のプレイヤーがカードを出して種類を宣言
-2. 次のプレイヤーが`challenge`するかどうかを決定
-   - Challenge しない場合：ゲーム続行
-   - Challenge する場合：カードが公開され、結果に応じてロシアンルーレット
-3. 次のプレイヤーのターン
-
-## コマンドリファレンス
-
-### `init`
-
-ゲームを初期化します。
+- **言語が切り替わらない**: メインメニューから「3. 言語変更」を選択
+- **プレイヤー名が保存されない**: プレイヤー設定変更後、メインメニューに戻ることで自動保存
 
 ```bash
 liars_table init [OPTIONS]
@@ -144,148 +157,29 @@ liars_table init [OPTIONS]
 
 **オプション:**
 
-- `--players <COUNT>`: プレイヤー数（2-3、デフォルト: 3）
-- `--bullets <COUNT>`: 装弾数（1-3、デフォルト: 1）
+## 貢献・開発
 
-### `deal`
+### 開発者向け情報
 
-カードを配布します。
+- **言語**: Rust 2024 Edition
+- **主要依存関係**: dialoguer, serde, toml, dirs, thiserror
+- **テスト**: `cargo test`
+- **ビルド**: `cargo build --release`
 
-```bash
-liars_table deal
-```
+### 貢献方法
 
-### `play`
+1. このリポジトリをフォーク
+2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
 
-カードをプレイします。
+### 関連ドキュメント
 
-```bash
-liars_table play --player <ID> --cards <POSITIONS> --declare <TYPE>
-```
-
-**引数:**
-
-- `--player <ID>`: プレイヤー ID（1-3）
-- `--cards <POSITIONS>`: カードの位置（例: `1,2,3`）
-- `--declare <TYPE>`: 宣言する種類（`ace`, `queen`, `king`）
-
-### `challenge`
-
-前のプレイヤーにチャレンジします。
-
-```bash
-liars_table challenge --challenger <ID>
-```
-
-**引数:**
-
-- `--challenger <ID>`: チャレンジするプレイヤー ID
-
-### `roulette`
-
-ロシアンルーレットを実行します。
-
-```bash
-liars_table roulette --target <ID>
-```
-
-**引数:**
-
-- `--target <ID>`: 対象プレイヤー ID
-
-### `status`
-
-現在のゲーム状態を表示します。
-
-```bash
-liars_table status
-```
-
-## ゲームルール詳細
-
-### カードの種類
-
-- **ACE**: 4 枚（A♠, A♥, A♦, A♣）
-- **QUEEN**: 4 枚（Q♠, Q♥, Q♦, Q♣）
-- **KING**: 4 枚（K♠, K♥, K♦, K♣）
-- **JOKER**: 4 枚（万能カード）
-
-### 宣言ルール
-
-- 宣言できるのは`ACE`, `QUEEN`, `KING`のみ
-- 実際に出すカードは宣言した種類または JOKER でなければならない
-- JOKER は任意の宣言に対して正当なカード
-
-### チャレンジルール
-
-- チャレンジが**正解**（相手が嘘）: 嘘をついたプレイヤーがロシアンルーレット
-- チャレンジが**間違い**（相手が正直）: チャレンジしたプレイヤーがロシアンルーレット
-
-### ロシアンルーレット
-
-- 6 つの部屋のうち、指定された数の部屋に弾が装填
-- ランダムに 1 つの部屋が選ばれる
-- 弾が入っていた場合「OUT」、入っていなかった場合「SAFE」
-
-### 勝利条件
-
-- 最後まで残ったプレイヤーの勝利
-- 全員生存の場合、手札を最初に使い切ったプレイヤーの勝利
-
-## トラブルシューティング
-
-### よくあるエラー
-
-**"Game not initialized"**
-
-```bash
-# 解決方法：まずゲームを初期化
-liars_table init
-```
-
-**"Invalid card position"**
-
-```bash
-# 解決方法：正しいカード位置を指定（1から始まる）
-liars_table play --player 1 --cards 1,2 --declare ace
-```
-
-**"Player not found"**
-
-```bash
-# 解決方法：有効なプレイヤーIDを指定（1-3）
-liars_table challenge --challenger 2
-```
-
-### ゲームリセット
-
-問題が発生した場合、以下でゲームをリセットできます：
-
-```bash
-rm .liars_table_state.json  # ゲーム状態ファイルを削除
-liars_table init             # 新しいゲームを開始
-```
-
-## 開発・貢献
-
-プロジェクトへの貢献を歓迎します！詳細は以下をご覧ください：
-
-- [仕様書](doc/concept.md)
-- [システム設計](doc/system.md)
-- [実装経緯](doc/history.md)
-
-### テスト実行
-
-```bash
-cargo test
-```
-
-### リリースビルド
-
-```bash
-cargo build --release
-```
+- [仕様書](doc/concept.md) - ゲームルールの詳細
+- [開発経緯](doc/history.md) - 設計思想と変遷
+- [v0.3 企画書](doc/v0.3_plan.md) - 次期バージョンの計画
 
 ## ライセンス
 
-MIT License - 詳細は [LICENSE](LICENSE) ファイルをご覧ください。
+MIT License または Apache License 2.0 - [LICENSE-MIT](LICENSE-MIT) および [LICENSE-APACHE](LICENSE-APACHE) ファイルをご覧ください。

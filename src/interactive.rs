@@ -63,12 +63,26 @@ impl InteractiveUI {
             self.select_language()?;
         }
 
+        // ゲーム完了状態チェック（前回のゲーム完了後の場合）
+        if self.config.game_completed {
+            self.handle_game_reset()?;
+        }
+
         // メインゲームループ
         loop {
             // 勝者チェック
             if let Some(winner) = self.config.check_winner() {
                 self.show_winner(winner)?;
-                break;
+                self.config.mark_game_completed();
+                self.config.save()?;
+
+                // 新しいゲームを開始するか確認
+                if self.ask_new_game()? {
+                    self.config.reset_game();
+                    continue; // ゲームを続行
+                } else {
+                    break; // ゲーム終了
+                }
             }
 
             // メインメニュー表示
@@ -220,31 +234,17 @@ impl InteractiveUI {
     fn execute_roulette(&mut self) -> Result<(), InteractiveError> {
         println!("\n{}", self.i18n.get_message("roulette_execution")?);
 
-        // 対象プレイヤー選択
-        let active_players = self.config.active_players();
-        if active_players.is_empty() {
-            return Err(InteractiveError::DialogError(
-                "No active players".to_string(),
-            ));
-        }
+        // 現在のターンのプレイヤーを自動的に対象にする
+        let target_player = match self.config.current_player() {
+            Some(player) => player,
+            None => {
+                return Err(InteractiveError::DialogError(
+                    "No current player found".to_string(),
+                ));
+            }
+        };
 
-        let player_names: Vec<String> = active_players
-            .iter()
-            .map(|p| format!("{}: {}", p.id, p.name))
-            .collect();
-
-        let selection = Select::with_theme(&self.theme)
-            .with_prompt("対象プレイヤーを選択:")
-            .items(&player_names)
-            .default(0)
-            .interact()
-            .map_err(|e| {
-                InteractiveError::DialogError(format!("Player selection failed: {}", e))
-            })?;
-
-        let target_player = active_players[selection];
-
-        // 確認表示
+        // 対象プレイヤー表示
         let mut args = HashMap::new();
         args.insert("name".to_string(), target_player.name.clone());
         println!(
@@ -294,7 +294,18 @@ impl InteractiveUI {
                     self.i18n
                         .get_message_with_args("roulette_result_safe", &args)?
                 );
-                // セーフな場合は同じプレイヤーが続行
+                // セーフな場合は次のプレイヤーにターンを移す
+                self.config.next_turn();
+
+                // 次のプレイヤーを表示
+                if let Some(next_player) = self.config.current_player() {
+                    let mut next_args = HashMap::new();
+                    next_args.insert("name".to_string(), next_player.name.clone());
+                    println!(
+                        "{}",
+                        self.i18n.get_message_with_args("next_turn", &next_args)?
+                    );
+                }
             }
             RouletteResult::Out => {
                 println!(
@@ -309,6 +320,16 @@ impl InteractiveUI {
                 );
                 // プレイヤーを除外（eliminate_playerメソッド内で自動的にターンが進む）
                 self.config.eliminate_player(target_player.id)?;
+
+                // 次のプレイヤーを表示（ゲーム終了でない場合）
+                if let Some(next_player) = self.config.current_player() {
+                    let mut next_args = HashMap::new();
+                    next_args.insert("name".to_string(), next_player.name.clone());
+                    println!(
+                        "{}",
+                        self.i18n.get_message_with_args("next_turn", &next_args)?
+                    );
+                }
             }
         }
 
@@ -475,6 +496,26 @@ impl InteractiveUI {
         );
 
         Ok(())
+    }
+
+    /// ゲームリセット処理
+    fn handle_game_reset(&mut self) -> Result<(), InteractiveError> {
+        println!("\n{}", self.i18n.get_message("game_reset")?);
+        self.config.reset_game();
+        Ok(())
+    }
+
+    /// 新しいゲームを開始するか確認
+    fn ask_new_game(&self) -> Result<bool, InteractiveError> {
+        let confirmed = Confirm::with_theme(&self.theme)
+            .with_prompt(self.i18n.get_message("start_new_game")?)
+            .default(true)
+            .interact()
+            .map_err(|e| {
+                InteractiveError::DialogError(format!("New game confirmation failed: {}", e))
+            })?;
+
+        Ok(confirmed)
     }
 }
 

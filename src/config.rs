@@ -36,6 +36,8 @@ pub struct GameConfig {
     pub current_turn: u8, // 現在のターンのプレイヤーID
     #[serde(default = "default_participant_count")]
     pub participant_count: u8, // 参加人数（2-4人）
+    #[serde(default)]
+    pub game_completed: bool, // ゲーム完了フラグ
 }
 
 /// participant_countのデフォルト値
@@ -48,7 +50,8 @@ impl Default for GameConfig {
         Self {
             language: "ja".to_string(),
             bullet_capacity: 6,
-            participant_count: 4, // デフォルトは4人参加
+            participant_count: 4,  // デフォルトは4人参加
+            game_completed: false, // 初期状態はゲーム進行中
             players: vec![
                 Player {
                     id: 1,
@@ -327,6 +330,29 @@ impl GameConfig {
     /// 現在のターンのプレイヤーを取得
     pub fn current_player(&self) -> Option<&Player> {
         self.get_player(self.current_turn)
+    }
+
+    /// ゲームをリセット（新しいゲームを開始）
+    #[allow(dead_code)] // interactive.rsで使用される
+    pub fn reset_game(&mut self) {
+        // 全プレイヤーをアクティブ状態に戻す（参加人数の範囲内で）
+        for player in &mut self.players {
+            if player.id <= self.participant_count {
+                player.is_active = true;
+            }
+        }
+
+        // 最初のプレイヤーからスタート
+        self.current_turn = 1;
+
+        // ゲーム完了フラグをリセット
+        self.game_completed = false;
+    }
+
+    /// ゲーム完了をマーク
+    #[allow(dead_code)] // interactive.rsで使用される
+    pub fn mark_game_completed(&mut self) {
+        self.game_completed = true;
     }
 
     /// 勝者をチェック（アクティブプレイヤーが1人の場合）

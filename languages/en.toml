@@ -46,11 +46,14 @@ roulette_spinning = "🔄 Spinning the cylinder..."
 roulette_result_safe = "✅ {name} is SAFE!"
 roulette_result_out = "💀 {name} is OUT..."
 player_eliminated = "{name} has been eliminated from the game"
+next_turn = "Next turn: {name}"
 
 # Game state
 active_players = "Remaining players: {count}"
 game_winner = "🎉 {name} wins!"
 continue_prompt = "Press Enter to continue..."
+game_reset = "🔄 Resetting game and starting a new one"
+start_new_game = "Start a new game?"
 
 # Error messages
 error_invalid_input = "Invalid input"

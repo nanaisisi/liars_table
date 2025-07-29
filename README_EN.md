@@ -135,7 +135,7 @@ liars_table/
 ├── doc/
 │   ├── concept.md       # Game specification
 │   ├── history.md       # Development history
-│   └── v0.0.1_plan.md   # v0.0.1 implementation plan
+│   └── v0.0.1_plan.md   # Implementation plan
 ├── config.toml          # Fast compilation settings
 └── Cargo.toml           # Package configuration
 ```
@@ -231,7 +231,7 @@ cargo build --release
 
 - [Specification](doc/concept.md) - Detailed game rules
 - [Development History](doc/history.md) - Design philosophy and evolution
-- [v0.0.1 Implementation Plan](doc/v0.0.1_plan.md) - Implementation plan
+- [Implementation Plan](doc/v0.0.1_plan.md) - Implementation plan
 
 ## License
 

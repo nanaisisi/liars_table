@@ -136,7 +136,7 @@ liars_table/
 ├── doc/
 │   ├── concept.md       # ゲーム仕様書
 │   ├── history.md       # 開発経緯
-│   └── v0.0.1_plan.md   # v0.0.1実装計画
+│   └── v0.0.1_plan.md   # 実装計画書
 ├── config.toml          # 高速コンパイル設定
 └── Cargo.toml           # パッケージ設定
 ```
@@ -238,7 +238,7 @@ cargo build --release
 
 - [仕様書](doc/concept.md) - ゲームルールの詳細
 - [開発経緯](doc/history.md) - 設計思想と変遷
-- [v0.0.1 実装計画](doc/v0.0.1_plan.md) - 実装計画書
+- [実装計画](doc/v0.0.1_plan.md) - 実装計画書
 
 ## ライセンス
 

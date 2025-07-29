@@ -56,6 +56,11 @@ impl Default for GameConfig {
                     name: "プレイヤー3".to_string(),
                     is_active: true,
                 },
+                Player {
+                    id: 4,
+                    name: "プレイヤー4".to_string(),
+                    is_active: true,
+                },
             ],
             current_turn: 1,
         }

@@ -189,19 +189,21 @@ impl InteractiveUI {
         // アクティブプレイヤー数表示
         let active_count = self.config.active_player_count();
         let total_players = self.config.players.len();
-        println!("DEBUG: アクティブプレイヤー: {}/{}", active_count, total_players);
-        
+        println!(
+            "DEBUG: アクティブプレイヤー: {}/{}",
+            active_count, total_players
+        );
+
         // プレイヤー詳細表示
         for player in &self.config.players {
-            println!("DEBUG: プレイヤー{}: {} (アクティブ: {})", 
-                player.id, player.name, player.is_active);
+            println!(
+                "DEBUG: プレイヤー{}: {} (アクティブ: {})",
+                player.id, player.name, player.is_active
+            );
         }
-        
+
         let mut args = HashMap::new();
-        args.insert(
-            "count".to_string(),
-            active_count.to_string(),
-        );
+        args.insert("count".to_string(), active_count.to_string());
         println!(
             "{}",
             self.i18n.get_message_with_args("active_players", &args)?
